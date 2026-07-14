@@ -242,5 +242,7 @@ export const NODE_TLS_REJECT_UNAUTHORIZED = getConfig(
   "NODE_TLS_REJECT_UNAUTHORIZED"
 );
 export const GITLAB_CA_CERT_PATH = getConfig("ca-cert-path", "GITLAB_CA_CERT_PATH");
+export const GITLAB_CLIENT_CERT_PATH = getConfig("client-cert-path", "GITLAB_CLIENT_CERT_PATH");
+export const GITLAB_CLIENT_KEY_PATH = getConfig("client-key-path", "GITLAB_CLIENT_KEY_PATH");
 const _poolMaxSizeRaw = getConfig("pool-max-size", "GITLAB_POOL_MAX_SIZE");
 export const GITLAB_POOL_MAX_SIZE = _poolMaxSizeRaw ? Number.parseInt(_poolMaxSizeRaw, 10) : 100;

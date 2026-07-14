@@ -13,7 +13,7 @@ import fs from "fs";
  * - IP addresses (e.g., "127.0.0.1", "192.168.1.1")
  * - Wildcard "*" to bypass all proxies
  * - Port-specific matches (e.g., "example.com:8080")
- * 
+ *
  * @param url The URL to check
  * @param noProxy Comma-separated list of patterns from NO_PROXY
  * @returns true if the URL should bypass the proxy, false otherwise
@@ -48,7 +48,7 @@ function shouldBypassProxy(url: string, noProxy: string | undefined): boolean {
 
     // Handle port-specific patterns (e.g., "example.com:8080")
     const [patternHost, patternPort] = pattern.split(':');
-    
+
     // If pattern specifies a port, check if it matches
     if (patternPort && port !== patternPort) {
       continue;
@@ -77,6 +77,8 @@ export interface GitLabClientPoolOptions {
   noProxy?: string;
   rejectUnauthorized?: boolean;
   caCertPath?: string;
+  clientCertPath?: string;
+  clientKeyPath?: string;
   poolMaxSize?: number;
 }
 
@@ -106,9 +108,22 @@ export class GitLabClientPool {
    * @returns A `ClientAgents` object containing the configured agents.
    */
   private createAgentsForUrl(apiUrl: string): ClientAgents {
-    const { httpProxy, httpsProxy, noProxy, rejectUnauthorized, caCertPath } = this.options;
+    const {
+      httpProxy,
+      httpsProxy,
+      noProxy,
+      rejectUnauthorized,
+      caCertPath,
+      clientCertPath,
+      clientKeyPath
+    } = this.options;
 
-    let sslOptions: { rejectUnauthorized?: boolean; ca?: Buffer } = {};
+    let sslOptions: {
+      rejectUnauthorized?: boolean;
+      ca?: Buffer;
+      cert?: Buffer;
+      key?: Buffer
+    } = {};
     if (rejectUnauthorized === false) {
       sslOptions.rejectUnauthorized = false;
     } else if (caCertPath) {
@@ -118,6 +133,21 @@ export class GitLabClientPool {
         console.error(`Failed to read CA certificate from ${caCertPath}:`, error);
         throw new Error(`Failed to read CA certificate: ${caCertPath}`);
       }
+    }
+
+    // Client certificate and key, if provided
+    try {
+      sslOptions.cert = this.readFileOrUndefine(clientCertPath);
+    } catch (error) {
+      console.error(`Failed to read client certificate:`, error);
+      throw new Error(`Failed to read client certificate`);
+    }
+
+    try {
+      sslOptions.key = this.readFileOrUndefine(clientKeyPath);
+    } catch (error) {
+      console.error(`Failed to read client key:`, error);
+      throw new Error(`Failed to read client key`);
     }
 
     // Check if this URL should bypass the proxy
@@ -150,6 +180,16 @@ export class GitLabClientPool {
     }
 
     return { httpAgent, httpsAgent };
+  }
+
+  private readFileOrUndefine(path: string | undefined): Buffer | undefined {
+    if (typeof path !== "string" || path.length === 0) return undefined;
+
+    try {
+      return fs.readFileSync(path);
+    } catch (error) {
+      throw new Error(`Failed to read file: ${path}`);
+    }
   }
 
   /**

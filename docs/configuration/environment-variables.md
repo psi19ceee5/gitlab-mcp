@@ -581,6 +581,14 @@ Controls TLS certificate verification.
 
 Optional custom CA certificate path.
 
+### `GITLAB_CLIENT_CERT_PATH`
+
+Optional path to the client certificate pem file for mTLS
+
+### `GITLAB_CLIENT_KEY_PATH`
+
+Optional path to the client key pem file for mTLS
+
 ### `GITLAB_POOL_MAX_SIZE`
 
 Maximum GitLab client pool size.
