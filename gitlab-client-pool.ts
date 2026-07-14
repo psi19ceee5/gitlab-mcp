@@ -122,7 +122,7 @@ export class GitLabClientPool {
       rejectUnauthorized?: boolean;
       ca?: Buffer;
       cert?: Buffer;
-      key?: Buffer
+      key?: Buffer;
     } = {};
     if (rejectUnauthorized === false) {
       sslOptions.rejectUnauthorized = false;
@@ -136,19 +136,8 @@ export class GitLabClientPool {
     }
 
     // Client certificate and key, if provided
-    try {
-      sslOptions.cert = this.readFileOrUndefine(clientCertPath);
-    } catch (error) {
-      console.error(`Failed to read client certificate:`, error);
-      throw new Error(`Failed to read client certificate`);
-    }
-
-    try {
-      sslOptions.key = this.readFileOrUndefine(clientKeyPath);
-    } catch (error) {
-      console.error(`Failed to read client key:`, error);
-      throw new Error(`Failed to read client key`);
-    }
+    sslOptions.cert = this.readFileOrUndefine(clientCertPath, "client certificate");
+    sslOptions.key = this.readFileOrUndefine(clientKeyPath, "client key");
 
     // Check if this URL should bypass the proxy
     const bypassProxy = shouldBypassProxy(apiUrl, noProxy);
@@ -182,13 +171,15 @@ export class GitLabClientPool {
     return { httpAgent, httpsAgent };
   }
 
-  private readFileOrUndefine(path: string | undefined): Buffer | undefined {
+  private readFileOrUndefine(path: string | undefined, label: string): Buffer | undefined {
     if (typeof path !== "string" || path.length === 0) return undefined;
 
     try {
       return fs.readFileSync(path);
     } catch (error) {
-      throw new Error(`Failed to read file: ${path}`);
+      const message = `Failed to read ${label} from ${path}`;
+      console.error(message);
+      throw new Error(`${message}: ${error}`);
     }
   }
 
