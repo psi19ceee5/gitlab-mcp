@@ -171,6 +171,14 @@ export class GitLabClientPool {
     return { httpAgent, httpsAgent };
   }
 
+  /**
+   * Reads a file and returns its contents as a Buffer, or undefined if the
+   * path is null, undefined, or empty.
+   * @param path The file path to read.
+   * @param label A descriptive label used in error messages.
+   * @returns The file contents as a Buffer, or undefined if the path is empty.
+   * @throws Error if the file cannot be read.
+   */
   private readFileOrUndefine(path: string | undefined, label: string): Buffer | undefined {
     if (typeof path !== "string" || path.length === 0) return undefined;
 
